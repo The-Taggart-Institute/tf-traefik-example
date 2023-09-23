@@ -1,0 +1,62 @@
+version: "3.9"
+    
+services:
+  reverse-proxy:
+    image: traefik:v2.10
+    # Enables the web UI and tells Traefik to listen to docker
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=myemail@domain.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=acme.json"
+      - "--entrypoints.wordpress.address=:80"
+      - "--entrypoints.wordpress.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls.domains[0].main=mydomain.com"
+      - "--entrypoints.websecure.http.tls.domains[0].sans=*.mydomain.com"
+    ports:
+      - "80:80"
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
+  db:
+    image: mysql:latest
+    volumes:
+      - ./db/db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    
+  wordpress:
+    depends_on:
+      - db
+    image: tf_wordpress
+    build:
+        context: .
+        dockerfile: ./Dockerfile
+    volumes:
+      - ./wordpress/wordpress_data:/var/www/html
+      - ./apache-logs:/var/log/apache2
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wordpress.rule=Host(`mydomain.com`)
+      - traefik.http.routers.wordpress.entrypoints=websecure
+      - traefik.http.routers.wordpress.tls=true
+      - traefik.http.routers.wordpress.tls.certresolver=letsencrypt
+
+volumes:
+  db_data: {}
+  wordpress_data: {}
