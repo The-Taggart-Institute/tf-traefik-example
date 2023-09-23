@@ -1,10 +1,10 @@
-resource "azurerm_linux_virtual_machine" "whisperwolf-wordpress" {
-  name                            = "whisperwolf-wordpress"
+resource "azurerm_linux_virtual_machine" "my-wordpress" {
+  name                            = "my-wordpress"
   location                        = "westus2"
   resource_group_name             = var.resource_group
-  network_interface_ids           = [azurerm_network_interface.whisperwolf-wordpress.id]
+  network_interface_ids           = [azurerm_network_interface.my-wordpress.id]
   size                            = "Standard_B1ms"
-  computer_name                   = "whisperwolf-wordpress"
+  computer_name                   = "my-wordpress"
   admin_username                  = var.admin_username
   admin_password                  = var.admin_password
   disable_password_authentication = false
@@ -15,7 +15,7 @@ resource "azurerm_linux_virtual_machine" "whisperwolf-wordpress" {
   }
 
   os_disk {
-    name                 = "whisperwolf-wordpress-osdisk"
+    name                 = "my-wordpress-osdisk"
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
     disk_size_gb         = 50
@@ -47,21 +47,21 @@ resource "azurerm_linux_virtual_machine" "whisperwolf-wordpress" {
   }
 }
 
-resource "azurerm_network_interface" "whisperwolf-wordpress" {
-  name                = "whisperwolf-wordpress"
+resource "azurerm_network_interface" "my-wordpress" {
+  name                = "my-wordpress"
   location            = "westus2"
   resource_group_name = var.resource_group
 
   ip_configuration {
-    name                          = "whisperwolf-internal"
-    subnet_id                     = azurerm_subnet.whisperwolf-internal.id
+    name                          = "my-internal"
+    subnet_id                     = azurerm_subnet.my-internal.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.whisperwolf-wordpress.id
+    public_ip_address_id          = azurerm_public_ip.my-wordpress.id
   }
 }
 
-resource "azurerm_network_security_group" "whisperwolf-wordpress" {
-  name                = "whisperwolf-wordpress-nsg"
+resource "azurerm_network_security_group" "my-wordpress" {
+  name                = "my-wordpress-nsg"
   location            = "westus2"
   resource_group_name = var.resource_group
 
@@ -101,13 +101,13 @@ resource "azurerm_network_security_group" "whisperwolf-wordpress" {
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "whisperwolf-wordpress" {
-  network_interface_id      = azurerm_network_interface.whisperwolf-wordpress.id
-  network_security_group_id = azurerm_network_security_group.whisperwolf-wordpress.id
+resource "azurerm_network_interface_security_group_association" "my-wordpress" {
+  network_interface_id      = azurerm_network_interface.my-wordpress.id
+  network_security_group_id = azurerm_network_security_group.my-wordpress.id
 }
 
-resource "azurerm_public_ip" "whisperwolf-wordpress" {
-  name                = "whisperwolf-wordpress-public-ip"
+resource "azurerm_public_ip" "my-wordpress" {
+  name                = "my-wordpress-public-ip"
   location            = "westus2"
   resource_group_name = var.resource_group
   allocation_method   = "Dynamic"
@@ -118,12 +118,12 @@ resource "azurerm_dns_a_record" "example" {
   zone_name           = var.dns_zone
   resource_group_name = var.resource_group
   ttl                 = 300
-  records             = [azurerm_linux_virtual_machine.whisperwolf-wordpress.public_ip_address]
+  records             = [azurerm_linux_virtual_machine.my-wordpress.public_ip_address]
 }
 
 
 output "public_ip" {
-  value       = azurerm_linux_virtual_machine.whisperwolf-wordpress.public_ip_address
+  value       = azurerm_linux_virtual_machine.my-wordpress.public_ip_address
   sensitive   = false
-  description = "Whisperwolf Public IP"
+  description = "my Public IP"
 }
