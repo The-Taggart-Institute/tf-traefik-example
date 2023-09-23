@@ -37,10 +37,7 @@ services:
   wordpress:
     depends_on:
       - db
-    image: tf_wordpress
-    build:
-        context: .
-        dockerfile: ./Dockerfile
+    image: wordpress:php8.2-apache
     volumes:
       - ./wordpress/wordpress_data:/var/www/html
       - ./apache-logs:/var/log/apache2
